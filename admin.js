@@ -233,6 +233,13 @@
         alert(data && data.error ? data.error : 'キャンセルに失敗しました');
         return;
       }
+      if (data.lineNotificationSent) {
+        alert('キャンセルしました。お客様へLINE通知を送信しました。');
+      } else if (data.lineNotificationAvailable) {
+        alert('キャンセルしましたが、LINE通知の送信に失敗しました。電話またはメールでご連絡ください。');
+      } else {
+        alert('キャンセルしました。LINE通知先がない予約のため、電話またはメールでご連絡ください。');
+      }
       loadAll();
     });
   }
