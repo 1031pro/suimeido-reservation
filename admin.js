@@ -120,13 +120,16 @@
         + '<td>' + escapeHtml(item.phone) + '<br><small>' + escapeHtml(item.email || '') + '</small></td>'
         + '<td>' + escapeHtml(item.payment || '-') + (item.price ? '<br><small>' + Number(item.price).toLocaleString() + '円</small>' : '') + '</td>'
         + '<td><span class="status ' + (cancelled ? 'cancelled' : '') + '">' + escapeHtml(item.status || '-') + '</span></td>'
-        + '<td>' + (cancelled ? '-' : '<button class="danger" type="button" data-cancel="' + escapeHtml(item.reservationId) + '">キャンセル</button>') + '</td>'
+        + '<td>' + (cancelled ? '-' : '<button class="danger" type="button" data-cancel="' + escapeHtml(item.reservationId) + '" data-cancel-name="' + escapeAttr(item.name || '') + '">キャンセル</button>') + '</td>'
         + '</tr>';
     }).join('');
 
     reservationRows.querySelectorAll('[data-cancel]').forEach(function (button) {
       button.addEventListener('click', function () {
-        cancelReservation(button.getAttribute('data-cancel'));
+        cancelReservation(
+          button.getAttribute('data-cancel'),
+          button.getAttribute('data-cancel-name')
+        );
       });
     });
   }
@@ -220,8 +223,8 @@
     });
   }
 
-  function cancelReservation(reservationId) {
-    if (!confirm('予約番号 ' + reservationId + ' をキャンセルしますか？')) return;
+  function cancelReservation(reservationId, reservationName) {
+    if (!confirm(reservationName + '（' + reservationId + '）をキャンセルしますか？')) return;
     showLoader(true);
     callApi({
       action: 'adminCancel',
