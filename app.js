@@ -316,7 +316,7 @@
         button.type = 'button';
         button.className = 'availability-button ' + (slot.available ? 'is-open' : 'is-booked');
         button.textContent = slot.available ? '○' : '×';
-        button.setAttribute('aria-label', slot.displayDate + ' ' + slot.time + (slot.available ? ' を選択' : ' 予約済み'));
+        button.setAttribute('aria-label', slot.displayDate + ' ' + slot.time + (slot.available ? ' を選択' : ' 予約不可'));
         if (slot.available) {
           button.addEventListener('click', function () {
             selectSlot(slot);

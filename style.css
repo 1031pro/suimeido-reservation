@@ -461,6 +461,13 @@ button:disabled { cursor: not-allowed; }
   font-size: 12px;
   font-weight: 700;
 }
+.availability-card__head .availability-inquiry-note {
+  max-width: 520px;
+  margin-top: 8px;
+  color: #8a5a15;
+  font-size: 11px;
+  line-height: 1.6;
+}
 .availability-legend {
   flex: 0 0 auto;
   color: var(--sub);
