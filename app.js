@@ -211,7 +211,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function callApi(params, callback) {
+  function callApi(params, callback, options) {
     if (!hasApiUrl()) {
       window.setTimeout(function () {
         callback(null, mockApi(params));
@@ -219,25 +219,12 @@
       return;
     }
 
-    var callbackName = 'reservationCb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
-    var script = document.createElement('script');
-    window[callbackName] = function (data) {
-      delete window[callbackName];
-      if (script.parentNode) script.parentNode.removeChild(script);
-      callback(null, data);
-    };
-
-    var url = config.GAS_WEBAPP_URL + '?callback=' + encodeURIComponent(callbackName);
-    Object.keys(params).forEach(function (key) {
-      url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
-    });
-
-    script.src = url;
-    script.onerror = function () {
-      delete window[callbackName];
-      callback(new Error('通信エラー'));
-    };
-    document.body.appendChild(script);
+    window.ReservationApiClient.request(
+      config.GAS_WEBAPP_URL,
+      params,
+      callback,
+      options
+    );
   }
 
   function startAvailabilityLoad() {
@@ -247,8 +234,8 @@
     }
     showScreen('loading');
     state.weekOffset = 0;
-    loadWeek(0, function () {
-      showScreen('slots');
+    loadWeek(0, function (success) {
+      showScreen(success ? 'slots' : 'home');
     });
   }
 
@@ -261,15 +248,24 @@
     }, function (err, data) {
       setWeekButtonsDisabled(false);
       if (err || !data || data.error) {
-        showToast(data && data.error ? data.error : '空き時間の取得に失敗しました');
-        if (done) done();
+        showToast(
+          data && data.error
+            ? data.error
+            : '空き時間の取得に時間がかかっています。もう一度お試しください。'
+        );
+        if (done) done(false);
         return;
       }
       state.weekOffset = offset;
       state.availability = data;
       renderAvailability(data);
       setWeekButtonsDisabled(false);
-      if (done) done();
+      if (done) done(true);
+    }, {
+      timeoutMs: 15000,
+      maxAttempts: 2,
+      retryDelayMs: 500,
+      retryOnErrorResponse: true
     });
   }
 
