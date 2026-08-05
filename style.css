@@ -435,6 +435,17 @@ button:disabled { cursor: not-allowed; }
   line-height: 1.35;
   text-align: center;
 }
+.week-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  margin: -4px 0 12px;
+  color: var(--sub);
+  font-size: 12px;
+  font-weight: 800;
+}
 .availability-card {
   overflow: hidden;
   border: 1px solid var(--border);

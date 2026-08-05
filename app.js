@@ -5,6 +5,7 @@
   var slotHeading = document.getElementById('slotHeading');
   var weekRange = document.getElementById('weekRange');
   var prevWeekButton = document.getElementById('prevWeekButton');
+  var weekLoading = document.getElementById('weekLoading');
   var reservationForm = document.getElementById('reservationForm');
   var submitLoading = document.getElementById('submitLoading');
   var selectedDateTime = document.getElementById('selectedDateTime');
@@ -37,17 +38,21 @@
   var state = {
     weekOffset: 0,
     availability: null,
+    availabilitySnapshot: null,
     selectedMenu: null,
     selectedSlot: null,
     toastTimer: null,
     userId: ''
   };
 
+  var snapshotLoader = window.AvailabilitySnapshotClient.createLoader(fetchAvailabilitySnapshot);
+
   document.addEventListener('DOMContentLoaded', function () {
     applyConfigText();
     setupMenuSelection();
     setupPaymentMode();
     setupLiff();
+    preloadAvailabilitySnapshot();
   });
 
   function hasApiUrl() {
@@ -234,18 +239,41 @@
     }
     showScreen('loading');
     state.weekOffset = 0;
-    loadWeek(0, function (success) {
-      showScreen(success ? 'slots' : 'home');
+    snapshotLoader.load(function (err, snapshot) {
+      if (!err && snapshot) {
+        state.availabilitySnapshot = snapshot;
+        loadWeek(0, function (success) {
+          showScreen(success ? 'slots' : 'home');
+        });
+        return;
+      }
+      loadWeekFromApi(0, function (success) {
+        showScreen(success ? 'slots' : 'home');
+      });
     });
   }
 
   function loadWeek(offset, done) {
+    if (state.availabilitySnapshot) {
+      var snapshotWeek = window.AvailabilitySnapshotClient.buildWeek(
+        state.availabilitySnapshot,
+        offset,
+        state.selectedMenu ? state.selectedMenu.id : ''
+      );
+      if (snapshotWeek) {
+        applyWeek(offset, snapshotWeek);
+        if (done) done(true);
+        return;
+      }
+    }
+    loadWeekFromApi(offset, done);
+  }
+
+  function loadWeekFromApi(offset, done) {
+    setWeekLoading(true);
     setWeekButtonsDisabled(true);
-    callApi({
-      action: 'weekAvailability',
-      week_offset: offset,
-      menu_id: state.selectedMenu ? state.selectedMenu.id : ''
-    }, function (err, data) {
+    fetchAvailabilityWeek(offset, function (err, data) {
+      setWeekLoading(false);
       setWeekButtonsDisabled(false);
       if (err || !data || data.error) {
         showToast(
@@ -256,17 +284,49 @@
         if (done) done(false);
         return;
       }
-      state.weekOffset = offset;
-      state.availability = data;
-      renderAvailability(data);
-      setWeekButtonsDisabled(false);
+      applyWeek(offset, data);
       if (done) done(true);
-    }, {
+    });
+  }
+
+  function preloadAvailabilitySnapshot() {
+    snapshotLoader.load(function (err, snapshot) {
+      if (!err && snapshot) state.availabilitySnapshot = snapshot;
+    });
+  }
+
+  function fetchAvailabilitySnapshot(callback) {
+    callApi({ action: 'availabilitySnapshot' }, callback, {
       timeoutMs: 15000,
       maxAttempts: 2,
       retryDelayMs: 500,
       retryOnErrorResponse: true
     });
+  }
+
+  function fetchAvailabilityWeek(offset, callback) {
+    callApi({
+      action: 'weekAvailability',
+      week_offset: offset,
+      menu_id: state.selectedMenu ? state.selectedMenu.id : ''
+    }, callback, {
+      timeoutMs: 15000,
+      maxAttempts: 2,
+      retryDelayMs: 500,
+      retryOnErrorResponse: true
+    });
+  }
+
+  function applyWeek(offset, data) {
+    state.weekOffset = offset;
+    state.availability = data;
+    renderAvailability(data);
+    setWeekButtonsDisabled(false);
+  }
+
+  function setWeekLoading(loading) {
+    weekLoading.hidden = !loading;
+    weekLoading.setAttribute('aria-busy', loading ? 'true' : 'false');
   }
 
   function setWeekButtonsDisabled(disabled) {
@@ -459,6 +519,9 @@
   reservationForm.addEventListener('submit', submitForm);
 
   function mockApi(params) {
+    if (params.action === 'availabilitySnapshot') {
+      return buildMockAvailabilitySnapshot();
+    }
     if (params.action === 'weekAvailability') {
       return buildMockAvailability(parseInt(params.week_offset || '0', 10));
     }
@@ -511,10 +574,47 @@
     return {
       success: true,
       weekOffset: offset,
+      canNext: offset < 4,
       startLabel: dates[0].label,
       endLabel: dates[6].label,
       dates: dates,
       rows: rows
+    };
+  }
+
+  function buildMockAvailabilitySnapshot() {
+    var menus = (config.MENUS || []).map(function (menu, index) {
+      return {
+        id: menu.id,
+        durationMinutes: menu.durationMinutes,
+        bit: Math.pow(2, index)
+      };
+    });
+    var allMenuMask = Math.pow(2, menus.length) - 1;
+    var weeks = [];
+    for (var offset = 0; offset <= 4; offset++) {
+      weeks.push(buildMockAvailability(offset));
+    }
+
+    return {
+      success: true,
+      snapshotVersion: 1,
+      generatedAt: new Date().toISOString(),
+      maxWeekOffset: 4,
+      menus: menus,
+      dates: weeks.reduce(function (result, week) {
+        return result.concat(week.dates);
+      }, []),
+      rows: mockSlotTimes.map(function (time, rowIndex) {
+        return {
+          time: time,
+          masks: weeks.reduce(function (result, week) {
+            return result.concat(week.rows[rowIndex].cells.map(function (cell) {
+              return cell.available ? allMenuMask : 0;
+            }));
+          }, [])
+        };
+      })
     };
   }
 
