@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260805-1">
   <script src="config.js"></script>
 </head>
 <body>
@@ -87,6 +87,11 @@
           <button class="week-nav__button" type="button" data-action="prevWeek" id="prevWeekButton">前の週</button>
           <div class="week-nav__range" id="weekRange">表示期間</div>
           <button class="week-nav__button" type="button" data-action="nextWeek" id="nextWeekButton">次の週</button>
+        </div>
+
+        <div class="week-loading" id="weekLoading" role="status" aria-live="polite" hidden>
+          <span class="mini-spinner"></span>
+          <span>空き時間を読み込んでいます</span>
         </div>
 
         <section class="availability-card" aria-label="空き状況一覧">
@@ -219,6 +224,7 @@
 
   <div class="toast" id="toast" role="alert"></div>
   <script src="api-client.js?v=20260804-1"></script>
-  <script src="app.js?v=20260804-1"></script>
+  <script src="availability-snapshot.js?v=20260805-1"></script>
+  <script src="app.js?v=20260805-1"></script>
 </body>
 </html>
