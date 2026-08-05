@@ -24,6 +24,7 @@
   var startButton = document.getElementById('startButton');
 
   var weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+  var slotScreenIdleTimeoutMs = Number(config.SLOT_SCREEN_IDLE_TIMEOUT_MS) || (10 * 60 * 1000);
   var mockSlotTimes = ['10:00', '10:30', '11:00', '13:00', '13:30', '14:00', '15:30', '16:00'];
   var mockBooked = [
     ['10:30', '14:00'],
@@ -42,6 +43,7 @@
     selectedMenu: null,
     selectedSlot: null,
     toastTimer: null,
+    slotIdleTimer: null,
     userId: ''
   };
 
@@ -53,6 +55,9 @@
     setupPaymentMode();
     setupLiff();
     preloadAvailabilitySnapshot();
+    document.addEventListener('pointerdown', handleSlotScreenActivity, { passive: true });
+    document.addEventListener('keydown', handleSlotScreenActivity);
+    window.addEventListener('scroll', handleSlotScreenActivity, { passive: true });
   });
 
   function hasApiUrl() {
@@ -213,7 +218,43 @@
     screens.forEach(function (screen) {
       screen.classList.toggle('is-active', screen.dataset.screen === name);
     });
+    if (name === 'slots') {
+      restartSlotIdleTimer();
+    } else {
+      stopSlotIdleTimer();
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function isSlotScreenActive() {
+    var slotScreen = document.querySelector('[data-screen="slots"]');
+    return !!(slotScreen && slotScreen.classList.contains('is-active'));
+  }
+
+  function handleSlotScreenActivity() {
+    if (isSlotScreenActive()) restartSlotIdleTimer();
+  }
+
+  function stopSlotIdleTimer() {
+    window.clearTimeout(state.slotIdleTimer);
+    state.slotIdleTimer = null;
+  }
+
+  function restartSlotIdleTimer() {
+    stopSlotIdleTimer();
+    state.slotIdleTimer = window.setTimeout(expireSlotScreen, slotScreenIdleTimeoutMs);
+  }
+
+  function expireSlotScreen() {
+    if (!isSlotScreenActive()) return;
+    snapshotLoader.clear();
+    state.availabilitySnapshot = null;
+    state.availability = null;
+    state.selectedSlot = null;
+    state.weekOffset = 0;
+    setWeekLoading(false);
+    showScreen('home');
+    showToast('空き状況を更新するため、メニュー選択画面に戻りました');
   }
 
   function callApi(params, callback, options) {

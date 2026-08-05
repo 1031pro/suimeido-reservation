@@ -17,6 +17,7 @@ window.RESERVATION_CONFIG = {
   EXTENSION_STEP_MINUTES: 15,
   EXTENSION_STEP_PRICE: 1500,
   EXTENSION_MAX_UNITS: 4,
+  SLOT_SCREEN_IDLE_TIMEOUT_MS: 10 * 60 * 1000,
   MENUS: [
     { id: 'full_body_60', name: '全身調整', durationMinutes: 60, durationLabel: '60分', price: 5000, description: '全身調整 60分' },
     { id: 'full_body_extended_75', name: '全身調整＋延長15分', durationMinutes: 75, durationLabel: '75分', price: 6500, description: '全身調整60分に15分延長' },
