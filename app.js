@@ -22,6 +22,11 @@
   var menuSection = document.getElementById('menuSection');
   var menuList = document.getElementById('menuList');
   var startButton = document.getElementById('startButton');
+  var patientTypeSelect = document.getElementById('patientType');
+  var phoneField = document.getElementById('phoneField');
+  var emailField = document.getElementById('emailField');
+  var guestPhone = document.getElementById('guestPhone');
+  var guestEmail = document.getElementById('guestEmail');
 
   var weekdays = ['日', '月', '火', '水', '木', '金', '土'];
   var slotScreenIdleTimeoutMs = Number(config.SLOT_SCREEN_IDLE_TIMEOUT_MS) || (10 * 60 * 1000);
@@ -53,6 +58,7 @@
     applyConfigText();
     setupMenuSelection();
     setupPaymentMode();
+    setupPatientTypeSelection();
     setupLiff();
     preloadAvailabilitySnapshot();
     document.addEventListener('pointerdown', handleSlotScreenActivity, { passive: true });
@@ -89,6 +95,23 @@
     }
 
     onsiteInput.checked = true;
+  }
+
+  function setupPatientTypeSelection() {
+    patientTypeSelect.addEventListener('change', syncPatientTypeFields);
+    syncPatientTypeFields();
+  }
+
+  function syncPatientTypeFields() {
+    var isReturning = patientTypeSelect.value === 'returning';
+    phoneField.hidden = isReturning;
+    emailField.hidden = isReturning;
+    guestPhone.required = !isReturning;
+    guestEmail.required = !isReturning;
+    if (isReturning) {
+      guestPhone.value = '';
+      guestEmail.value = '';
+    }
   }
 
   function setupMenuSelection() {
@@ -457,9 +480,10 @@
       action: getSelectedPayment() === 'stripe' ? 'createCheckout' : 'submitReservation',
       date: state.selectedSlot.date,
       time: state.selectedSlot.time,
+      patient_type: patientTypeSelect.value,
       name: document.getElementById('guestName').value.trim(),
-      phone: document.getElementById('guestPhone').value.trim(),
-      email: document.getElementById('guestEmail').value.trim(),
+      phone: guestPhone.value.trim(),
+      email: guestEmail.value.trim(),
       memo: document.getElementById('guestMemo').value.trim(),
       user_id: state.userId,
       menu_id: state.selectedMenu ? state.selectedMenu.id : '',
@@ -490,7 +514,9 @@
     completeReservationId.textContent = data.reservationId || '-';
     completeDateTime.textContent = (data.displayDate || slot.displayDate || '') + ' ' + (data.time || slot.time || '');
     completeName.textContent = params.name || document.getElementById('guestName').value.trim();
-    completeContact.textContent = (params.phone || document.getElementById('guestPhone').value.trim()) + ' / ' + (params.email || document.getElementById('guestEmail').value.trim());
+    completeContact.textContent = params.patient_type === 'returning'
+      ? '入力省略（再来）'
+      : (params.phone || guestPhone.value.trim()) + ' / ' + (params.email || guestEmail.value.trim());
     showScreen('complete');
   }
 
@@ -522,6 +548,7 @@
     completeName.textContent = '未入力';
     completeContact.textContent = '未入力';
     setupPaymentMode();
+    syncPatientTypeFields();
   }
 
   function closeWindow() {

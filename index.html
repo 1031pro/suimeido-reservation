@@ -133,14 +133,22 @@
 
           <div class="fields">
             <div class="field">
+              <label for="patientType">ご来院区分</label>
+              <select id="patientType" name="patientType" required>
+                <option value="">選択してください</option>
+                <option value="new">新規</option>
+                <option value="returning">再来</option>
+              </select>
+            </div>
+            <div class="field">
               <label for="guestName">お名前</label>
               <input id="guestName" name="guestName" type="text" autocomplete="name" placeholder="例）山田 花子" required>
             </div>
-            <div class="field">
+            <div class="field" id="phoneField">
               <label for="guestPhone">電話番号</label>
               <input id="guestPhone" name="guestPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="例）09012345678" required>
             </div>
-            <div class="field">
+            <div class="field" id="emailField">
               <label for="guestEmail">メールアドレス</label>
               <input id="guestEmail" name="guestEmail" type="email" autocomplete="email" inputmode="email" placeholder="例）sample@example.com" required>
             </div>
@@ -225,6 +233,6 @@
   <div class="toast" id="toast" role="alert"></div>
   <script src="api-client.js?v=20260804-1"></script>
   <script src="availability-snapshot.js?v=20260805-1"></script>
-  <script src="app.js?v=20260805-2"></script>
+  <script src="app.js?v=20260903-1"></script>
 </body>
 </html>

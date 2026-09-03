@@ -98,14 +98,14 @@
       if (status === 'cancelled' && item.status !== 'キャンセル') return false;
       if (date && item.date !== date) return false;
       if (query) {
-        var haystack = [item.reservationId, item.name, item.phone, item.email, item.menuName].join(' ').toLowerCase();
+        var haystack = [item.reservationId, item.name, item.phone, item.email, item.menuName, item.patientType].join(' ').toLowerCase();
         if (haystack.indexOf(query) < 0) return false;
       }
       return true;
     });
 
     if (!rows.length) {
-      reservationRows.innerHTML = '<tr><td class="empty" colspan="9">該当する予約はありません</td></tr>';
+      reservationRows.innerHTML = '<tr><td class="empty" colspan="10">該当する予約はありません</td></tr>';
       return;
     }
 
@@ -116,6 +116,7 @@
         + '<td>' + escapeHtml(item.date) + '</td>'
         + '<td>' + escapeHtml(item.time) + '</td>'
         + '<td>' + escapeHtml(item.menuName || '-') + '<br><small>' + escapeHtml(item.durationMinutes || '') + '分</small></td>'
+        + '<td>' + escapeHtml(item.patientType || '-') + '</td>'
         + '<td>' + escapeHtml(item.name) + '</td>'
         + '<td>' + escapeHtml(item.phone) + '<br><small>' + escapeHtml(item.email || '') + '</small></td>'
         + '<td>' + escapeHtml(item.payment || '-') + (item.price ? '<br><small>' + Number(item.price).toLocaleString() + '円</small>' : '') + '</td>'
@@ -294,6 +295,7 @@
           time: '10:00',
           menuName: '鍼灸治療',
           durationMinutes: 60,
+          patientType: '新規',
           name: '山田 花子',
           phone: '09012345678',
           email: 'sample@example.com',
