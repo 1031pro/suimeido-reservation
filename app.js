@@ -23,6 +23,8 @@
   var menuList = document.getElementById('menuList');
   var startButton = document.getElementById('startButton');
   var patientTypeSelect = document.getElementById('patientType');
+  var furiganaField = document.getElementById('furiganaField');
+  var guestFurigana = document.getElementById('guestFurigana');
   var phoneField = document.getElementById('phoneField');
   var emailField = document.getElementById('emailField');
   var guestPhone = document.getElementById('guestPhone');
@@ -104,11 +106,14 @@
 
   function syncPatientTypeFields() {
     var isReturning = patientTypeSelect.value === 'returning';
+    furiganaField.hidden = isReturning;
+    guestFurigana.required = !isReturning;
     phoneField.hidden = isReturning;
     emailField.hidden = isReturning;
     guestPhone.required = !isReturning;
     guestEmail.required = !isReturning;
     if (isReturning) {
+      guestFurigana.value = '';
       guestPhone.value = '';
       guestEmail.value = '';
     }
@@ -482,6 +487,7 @@
       time: state.selectedSlot.time,
       patient_type: patientTypeSelect.value,
       name: document.getElementById('guestName').value.trim(),
+      furigana: patientTypeSelect.value === 'new' ? guestFurigana.value.trim() : '',
       phone: guestPhone.value.trim(),
       email: guestEmail.value.trim(),
       memo: document.getElementById('guestMemo').value.trim(),
@@ -513,7 +519,8 @@
     var slot = state.selectedSlot || {};
     completeReservationId.textContent = data.reservationId || '-';
     completeDateTime.textContent = (data.displayDate || slot.displayDate || '') + ' ' + (data.time || slot.time || '');
-    completeName.textContent = params.name || document.getElementById('guestName').value.trim();
+    completeName.textContent = data.name || (params.name || document.getElementById('guestName').value.trim())
+      + (params.patient_type === 'new' && params.furigana ? '（' + params.furigana + '）' : '');
     completeContact.textContent = params.patient_type === 'returning'
       ? '入力省略（再来）'
       : (params.phone || guestPhone.value.trim()) + ' / ' + (params.email || guestEmail.value.trim());

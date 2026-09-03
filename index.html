@@ -133,16 +133,19 @@
 
           <div class="fields">
             <div class="field">
-              <label for="patientType">ご来院区分</label>
+              <label for="patientType">新規/再来</label>
               <select id="patientType" name="patientType" required>
-                <option value="">選択してください</option>
-                <option value="new">新規</option>
+                <option value="new" selected>新規</option>
                 <option value="returning">再来</option>
               </select>
             </div>
             <div class="field">
               <label for="guestName">お名前</label>
               <input id="guestName" name="guestName" type="text" autocomplete="name" placeholder="例）山田 花子" required>
+            </div>
+            <div class="field" id="furiganaField">
+              <label for="guestFurigana">ふりがな</label>
+              <input id="guestFurigana" name="guestFurigana" type="text" maxlength="100" placeholder="例）やまだ はなこ" required>
             </div>
             <div class="field" id="phoneField">
               <label for="guestPhone">電話番号</label>
@@ -233,6 +236,6 @@
   <div class="toast" id="toast" role="alert"></div>
   <script src="api-client.js?v=20260804-1"></script>
   <script src="availability-snapshot.js?v=20260805-1"></script>
-  <script src="app.js?v=20260903-1"></script>
+  <script src="app.js?v=20260904-1"></script>
 </body>
 </html>
